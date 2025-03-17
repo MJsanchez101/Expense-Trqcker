@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Modern Typography */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 25px;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 25px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: #2d3748;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        /* Dark Mode */
+        body.dark {
+            background-color: #131720;
+            color: #e2e8f0;
+        }
+        body.dark .container {
+            background-color: #1a202c;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        }
+        body.dark h2 {
+            color: #f7fafc;
+        }
+        /* Theme Switch */
+        .theme-switch {
+            text-align: right;
+            margin-bottom: 15px;
+        }
+        button.theme-toggle {
+            background: #4c51bf;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 500;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(76, 81, 191, 0.2);
+            transition: all 0.2s ease;
+        }
+        button.theme-toggle:hover {
+            background: #3c3f99;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(76, 81, 191, 0.3);
+        }
+        body.dark button.theme-toggle {
+            background: #6366f1;
+        }
+        body.dark button.theme-toggle:hover {
+            background: #4f46e5;
+        }
+        /* Expense Form */
+        .expense-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        body.dark .expense-form {
+            background-color: #2d3748;
+        }
+        input, select, button {
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.2s ease;
+        }
+        input, select {
+            background-color: white;
+            color: #4a5568;
+            flex: 1;
+            min-width: 150px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4c51bf;
+            box-shadow: 0 0 0 3px rgba(76, 81, 191, 0.15);
+        }
+        body.dark input, body.dark select {
+            background-color: #2d3748;
+            border-color: #4a5568;
+            color: #e2e8f0;
+        }
+        body.dark input:focus, body.dark select:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        button {
+            background-color: #4ade80;
+            color: white;
+            cursor: pointer;
+            border: none;
+            font-weight: 500;
+            min-width: 120px;
+            box-shadow: 0 4px 6px rgba(74, 222, 128, 0.2);
+        }
+        button:hover {
+            background-color: #22c55e;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(74, 222, 128, 0.3);
+        }
+        /* Expense List */
+        #categoryList {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .category {
+            margin-top: 0;
+            padding: 18px;
+            background: #f8fafc;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        .category strong {
+            display: block;
+            font-size: 18px;
+            color: #2d3748;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        body.dark .category {
+            background: #2d3748;
+        }
+        body.dark .category strong {
+            color: #f7fafc;
+            border-color: #4a5568;
+        }
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 5px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s;
+        }
+        .expense-item:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        .expense-item:last-child {
+            border-bottom: none;
+        }
+        body.dark .expense-item {
+            border-color: #4a5568;
+        }
+        body.dark .expense-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            
+border: none;
+cursor: pointer;
+padding: 8px;
+width: 30px;
+height: 30px;
+border-radius: 6px;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 14px;
+box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+transition: all 0.2s ease;
+}
+.delete-btn:hover {
+background: #dc2626;
+transform: scale(1.05);
+box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+/* Charts Layout /
+.chart-container {
+display: flex;
+flex-wrap: wrap;
+justify-content: space-between;
+margin-top: 30px;
+gap: 25px;
+}
+.chart-box {
+flex: 1;
+min-width: 300px;
+text-align: center;
+background: #fff;
+padding: 20px;
+border-radius: 12px;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+transition: all 0.3s ease;
+}
+.chart-box:hover {
+transform: translateY(-5px);
+box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+.chart-box h3 {
+margin-top: 0;
+margin-bottom: 15px;
+color: #2d3748;
+font-size: 18px;
+font-weight: 600;
+}
+body.dark .chart-box {
+background: #2d3748;
+}
+body.dark .chart-box h3 {
+color: #f7fafc;
+}
+canvas {
+max-width: 100%;
+height: auto;
+}
+/ Responsive Design /
+@media (max-width: 768px) {
+.chart-container {
+flex-direction: column;
+}
+.chart-box {
+max-width: 100%;
+margin-bottom: 20px;
+}
+.expense-form {
+flex-direction: column;
+}
+input, select, button {
+width: 100%;
+}
+}
+/ Animation Effects /
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+.category, .chart-box, .expense-form {
+animation: fadeIn 0.5s ease-out forwards;
+}
+/ Better Spacing for Amount Display */
+.expense-item span {
+font-weight: 500;
+color: #4a5568;
+}
+body.dark .expense-item span {
+color: #e2e8f0;
+}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="theme-switch">
+<button class="theme-toggle" onclick="toggleTheme()">Toggle Dark Mode</button>
+</div>
+<h2>Expense Tracker</h2>
+<div class="expense-form">
+<input type="text" id="expenseName" placeholder="Expense Name">
+<input type="number" id="expenseAmount" placeholder="Amount">
+<select id="expenseCategory">
+<option value="Food">Food</option>
+<option value="Bills">Bills</option>
+<option value="Transport">Transport</option>
+<option value="Shopping">Shopping</option>
+</select>
+<button onclick="addExpense()">Add Expense</button>
+<button onclick="addCustomCategory()">Add Category</button>
+<input type="text" id="customCategory" placeholder="New Category">
+</div>
+<div id="categoryList"></div>
+<div class="chart-container">
+<div class="chart-box">
+<h3>Expense Distribution</h3>
+<canvas id="pieChart"></canvas>
+</div>
+<div class="chart-box">
+<h3>Category Expenses</h3>
+<canvas id="barChart"></canvas>
+</div>
+</div>
+</div>
+<script>
+// Initialize global variables
+let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+let categories = JSON.parse(localStorage.getItem("categories")) || ["Food", "Bills", "Transport", "Shopping"];
+let pieChart, barChart;
+
+// Run on page load
+document.addEventListener("DOMContentLoaded", function () {
+    loadCategories();
+    updateExpenses();
+    updateCharts();
+    loadTheme();
+});
+
+// Function to toggle dark mode
+function toggleTheme() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+}
+
+// Function to load theme preference
+function loadTheme() {
+    if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark");
+    }
+}
+
+// Function to add an expense
+function addExpense() {
+    let name = document.getElementById("expenseName").value.trim();
+    let amount = parseFloat(document.getElementById("expenseAmount").value);
+    let category = document.getElementById("expenseCategory").value;
+
+    if (!name || isNaN(amount) || amount <= 0) {
+        alert("Please enter valid expense details.");
+        return;
+    }
+
+    expenses.push({ name, amount, category });
+    saveExpenses();
+    updateExpenses();
+    updateCharts();
+
+    document.getElementById("expenseName").value = "";
+    document.getElementById("expenseAmount").value = "";
+}
+
+// Function to save expenses to localStorage
+function saveExpenses() {
+    localStorage.setItem("expenses", JSON.stringify(expenses));
+}
+
+// Function to update the expense list
+function updateExpenses() {
+    let categoryList = document.getElementById("categoryList");
+    categoryList.innerHTML = "";
+
+    let groupedExpenses = {};
+    expenses.forEach((expense, index) => {
+        if (!groupedExpenses[expense.category]) {
+            groupedExpenses[expense.category] = [];
+        }
+        groupedExpenses[expense.category].push({ ...expense, index });
+    });
+
+    for (let category in groupedExpenses) {
+        let categoryDiv = document.createElement("div");
+        categoryDiv.className = "category";
+        categoryDiv.innerHTML = `<strong>${category}</strong>`;
+
+        groupedExpenses[category].forEach(expense => {
+            let expenseItem = document.createElement("div");
+            expenseItem.className = "expense-item";
+            expenseItem.innerHTML = `
+                ${expense.name}: ₱${expense.amount.toFixed(2)}
+                <button class="delete-btn" onclick="deleteExpense(${expense.index})">X</button>
+            `;
+            categoryDiv.appendChild(expenseItem);
+        });
+
+        categoryList.appendChild(categoryDiv);
+    }
+}
+
+// Function to delete an expense
+function deleteExpense(index) {
+    expenses.splice(index, 1);
+    saveExpenses();
+    updateExpenses();
+    updateCharts();
+}
+
+// Function to add a custom category
+function addCustomCategory() {
+    let newCategory = document.getElementById("customCategory").value.trim();
+
+    if (!newCategory) {
+        alert("Please enter a category name.");
+        return;
+    }
+
+    if (categories.includes(newCategory)) {
+        alert("Category already exists.");
+        return;
+    }
+
+    categories.push(newCategory);
+    saveCategories();
+    loadCategories();
+    document.getElementById("customCategory").value = "";
+}
+
+// Function to save categories to localStorage
+function saveCategories() {
+    localStorage.setItem("categories", JSON.stringify(categories));
+}
+
+// Function to load categories into dropdown
+function loadCategories() {
+    let categoryDropdown = document.getElementById("expenseCategory");
+    categoryDropdown.innerHTML = "";
+
+    categories.forEach(category => {
+        let option = document.createElement("option");
+        option.value = category;
+        option.textContent = category;
+        categoryDropdown.appendChild(option);
+    });
+}
+
+// Function to update the charts
+function updateCharts() {
+    let categoryTotals = {};
+    expenses.forEach(expense => {
+        categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + expense.amount;
+    });
+
+    let labels = Object.keys(categoryTotals);
+    let data = Object.values(categoryTotals);
+    let colors = ["#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF", "#FF9F40"];
+
+    updatePieChart(labels, data, colors);
+    updateBarChart(labels, data, colors);
+}
+
+// Function to update the Pie Chart
+function updatePieChart(labels, data, colors) {
+    if (pieChart) pieChart.destroy();
+    pieChart = new Chart(document.getElementById("pieChart"), {
+        type: "pie",
+        data: {
+            labels,
+            datasets: [{ data, backgroundColor: colors }]
+        }
+    });
+}
+
+// Function to update the Bar Chart
+function updateBarChart(labels, data, colors) {
+    if (barChart) barChart.destroy();
+    barChart = new Chart(document.getElementById("barChart"), {
+        type: "bar",
+        data: {
+            labels,
+            datasets: [{ data, backgroundColor: colors }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}</script>
+</body>
+</html>
+
